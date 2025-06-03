@@ -203,4 +203,32 @@ functions.editContact = async (id, name,phone,email,address) => {
     }
 }
 
-export default functions
+const getContacts = () => {
+  const contacts = JSON.parse(localStorage.getItem("contacts") || "[]");
+  return Promise.resolve({ contacts });
+};
+
+const addContact = (contact) => {
+  const contacts = JSON.parse(localStorage.getItem("contacts") || "[]");
+  contacts.push({ ...contact, id: Date.now() });
+  localStorage.setItem("contacts", JSON.stringify(contacts));
+  return Promise.resolve();
+};
+
+const deleteContact = (id) => {
+  let contacts = JSON.parse(localStorage.getItem("contacts") || "[]");
+  contacts = contacts.filter(contact => contact.id !== id);
+  localStorage.setItem("contacts", JSON.stringify(contacts));
+  return Promise.resolve();
+};
+
+const editContact = (id, updatedContact) => {
+  let contacts = JSON.parse(localStorage.getItem("contacts") || "[]");
+  contacts = contacts.map(contact =>
+    contact.id === id ? { ...contact, ...updatedContact } : contact
+  );
+  localStorage.setItem("contacts", JSON.stringify(contacts));
+  return Promise.resolve();
+};
+
+export default { getContacts, addContact, deleteContact, editContact };

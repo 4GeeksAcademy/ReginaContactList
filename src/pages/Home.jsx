@@ -1,23 +1,68 @@
 import { useNavigate } from "react-router-dom";
-import rigoImageUrl from "../assets/img/rigo-baby.jpg";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
-import collection from "../collection.js";
 import { useEffect } from "react";
 
 export const Home = () => {
   const { store, dispatch } = useGlobalReducer();
   const navigate = useNavigate();
 
-  const cleanContact = async (id) => {
-    await collection.deleteContact(id);
-    const update = await collection.getContacts();
-    dispatch({ type: "contacts", payload: update.contacts });
-  };
+  const getContacts = async () => {
+    try {
+      const response = await fetch(`${store.apiUrl}/agendas/${store.agendaName}`);
+      if (response.status === 404) {
+        console.error("Agenda not found, creating a new one...");
+        await createAgenda();
+        return;
+      }
+      if (!response.ok) {
+        throw new Error("Failed to fetch contacts");
+      }
+      const data = await response.json();
+      console.log("Contacts fetched:", data);
+      dispatch({ type: "set_contacts", payload: data.contacts });
+    }
+    catch (error) {
+      console.error("Error fetching contacts:", error);
+    }
+  }
+
+  const createAgenda = async () => {
+    try {
+      const response = await fetch(`${store.apiUrl}/agendas/${store.agendaName}`, {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create agenda");
+      }
+
+      const data = await response.json();
+      console.log("Agenda created:", data);
+    } catch (error) {
+      console.error("Error creating agenda:", error);
+    }
+  }
+
+  const deleteContact = async (id) => {
+    try {
+      const response = await fetch(`${store.apiUrl}/agendas/${store.agendaName}/contacts/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete contact");
+      }
+
+      const updatedContacts = store.contacts.filter(contact => contact.id !== id);
+      dispatch({ type: "set_contacts", payload: updatedContacts });
+    } catch (error) {
+      console.error("Error deleting contact:", error);
+    }
+  }
+
 
   useEffect(() => {
-    collection.getContacts().then((data) =>
-      dispatch({ type: "contacts", payload: data.contacts })
-    );
+    getContacts();
   }, []);
 
   return (
@@ -36,7 +81,7 @@ export const Home = () => {
           className="contact-card-custom m-auto mb-4"
         >
           <img
-            src={el.image || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"}
+            src={"https://cdn-icons-png.flaticon.com/512/3135/3135715.png"}
             alt="Avatar"
             className="contact-avatar-custom"
           />
@@ -64,7 +109,7 @@ export const Home = () => {
             </button>
             <button
               className="btn btn-danger"
-              onClick={() => cleanContact(el.id)}
+              onClick={() => deleteContact(el.id)}
             >
               <i className="fa-solid fa-trash"></i>
             </button>

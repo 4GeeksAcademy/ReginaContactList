@@ -1,6 +1,8 @@
 export const initialStore=()=>{
   return{
     message: null,
+    apiUrl: "https://playground.4geeks.com/contact",
+    agendaName: "Regina71411",
     contacts: [],
     todos: [
       {
@@ -20,7 +22,7 @@ export const initialStore=()=>{
 export default function storeReducer(store, action = {}) {
   switch(action.type){
     
-    case 'contacts':
+    case 'set_contacts':
       return {
         ...store,
       contacts: action.payload
